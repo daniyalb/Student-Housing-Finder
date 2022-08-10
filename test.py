@@ -41,6 +41,25 @@ def url_city_adder(city: str) -> str:
     elif city == 'london':
         return 'https://www.kijiji.ca/b-for-rent/london/student/k0c30349001l1700214?rb=true&ad=offering'
 
+def price_formatter(price: str) -> str:
+    price = price[1:]
+    price = price[:price.find('.')]
+    price = price.replace(',', '')
+    return int(price)
+
+def link_explorer(link: str) -> tuple:
+    html_text = requests.get(link).text
+    content = BeautifulSoup(html_text, 'lxml')
+    furnished = content.find('dl', class_='itemAttribute-3080139557')
+    if not furnished is None and not furnished.dd.text == 'No':
+        is_furnished = True
+    else:
+        is_furnished = False
+    location = content.find('span', class_='address-3617944557').text
+    description = content.find('div', class_='descriptionContainer-231909819').div.p.text
+    return (is_furnished, location, description)
+
+
 url = url_city_adder(city)
 
 html_text = requests.get(url).text
@@ -53,14 +72,21 @@ for ad in ads:
     if price == 'Please Contact':
         continue
     else:
-        price = price[1:]
-        price = price[:price.find('.')]
-        price = price.replace(',', '')
-        price = int(price)
+        price = price_formatter(price)
         print(price)
-    title = ad.find('div', class_='title').a.text.strip()
-    print(title)
     time = ad.find('span', class_='date-posted').text
     if not time[0] == '<':
         continue
     print(time)
+    title_link = ad.find('div', class_='title').a
+    link = 'https://www.kijiji.ca' + title_link['href']
+    print(link)
+    is_furnished, location, description = link_explorer(link)
+    print(is_furnished)
+    print(location)
+    print('****************************************************************')
+    print(description)
+    print('****************************************************************')
+    title = title_link.text.strip()
+    print(title)
+    print('----------------------------------------------------------------')
