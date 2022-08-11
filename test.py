@@ -1,23 +1,26 @@
 from bs4 import BeautifulSoup
 import requests
-"""
-city = input('Which city would you like to search in? ')
-city = city.lower()
-max_price = input('What is the highest price you are willing to rent for? ')
+
+#city = input('Which city would you like to search in? ')
+#city = city.lower() TODO: Unhide this and delete next line
+city = 'mississauga / peel region'
+max_price = input('What is the highest price you are willing to rent for? $')
+max_price = int(max_price)
 pets = ''
 while not pets == 'y' and not pets == 'n':
     pets = input('Do you require your housing to be pet-friendly? (y/n): ')
+furnished = ''
+while not furnished == 'y' and not furnished == 'n':
+    furnished = input('Would you want your housing to be furnished? (y/n): ')
+"""
 female_only = ''
 while not female_only == 'y' and not female_only == 'n':
     female_only = input('Would you like housing that is female only? (y/n): ')
 shared = ''
 while not shared == 'y' and not shared == 'n':
     shared = input('Would you be okay with shared accomodations? (y/n): ')
-furnished = ''
-while not furnished == 'y' and not furnished == 'n':
-    furnished = input('Would you want your housing to be furnished? (y/n): ')
 """
-city = 'mississauga / peel region'
+print('')
 
 def url_city_adder(city: str) -> str:
     if city == 'mississauga / peel region':
@@ -51,13 +54,22 @@ def link_explorer(link: str) -> tuple:
     html_text = requests.get(link).text
     content = BeautifulSoup(html_text, 'lxml')
     furnished = content.find('dl', class_='itemAttribute-3080139557')
-    if not furnished is None and not furnished.dd.text == 'No':
+    if furnished is None:
+        is_furnished = 'unknown'
+    elif furnished.dd.text == 'Yes':
         is_furnished = True
     else:
         is_furnished = False
+    pets = content.find('dl', class_='itemAttribute-3080139557')
+    if pets is None:
+        pets_allowed = 'unknown'
+    elif pets.dd.text == 'Yes':
+        pets_allowed = True
+    else:
+        pets_allowed = False
     location = content.find('span', class_='address-3617944557').text
     description = content.find('div', class_='descriptionContainer-231909819').div.p.text
-    return (is_furnished, location, description)
+    return (is_furnished, pets_allowed, location, description)
 
 
 url = url_city_adder(city)
@@ -67,26 +79,36 @@ content = BeautifulSoup(html_text, 'lxml')
 all_results = content.find('div', class_='container-results large-images').find_next()
 ads = all_results.find_all('div', class_='search-item regular-ad')
 listings = {}
+number = 1
 for ad in ads:
     price = ad.find('div', class_='price').text.strip()
     if price == 'Please Contact':
         continue
     else:
         price = price_formatter(price)
-        print(price)
+        if price > max_price:
+            continue
     time = ad.find('span', class_='date-posted').text
     if not time[0] == '<':
         continue
-    print(time)
     title_link = ad.find('div', class_='title').a
     link = 'https://www.kijiji.ca' + title_link['href']
-    print(link)
-    is_furnished, location, description = link_explorer(link)
-    print(is_furnished)
-    print(location)
-    print('****************************************************************')
-    print(description)
-    print('****************************************************************')
+    is_furnished, pets_allowed, location, description = link_explorer(link)
+    if pets == 'y' and (not pets_allowed or pets_allowed == 'unknown'):
+        continue
+    if furnished == 'y' and (not is_furnished or is_furnished == 'unknown'):
+        continue
     title = title_link.text.strip()
+    listings[number] = (price, time, link, is_furnished, pets_allowed, location, description, title)
+    number += 1
+
+for listing in listings:
+    price, time, link, is_furnished, pets_allowed, location, description, title = listings[listing]
     print(title)
+    print(f'Price: {price}')
+    print(f'Posted: {time}')
+    print(link)
+    print(f'Furnished: {is_furnished}')
+    print(f'Pets allowed: {pets_allowed}')
+    print(location)
     print('----------------------------------------------------------------')
