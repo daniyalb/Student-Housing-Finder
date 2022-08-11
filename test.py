@@ -12,10 +12,10 @@ while not pets == 'y' and not pets == 'n':
 furnished = ''
 while not furnished == 'y' and not furnished == 'n':
     furnished = input('Would you want your housing to be furnished? (y/n): ')
-"""
 female_only = ''
 while not female_only == 'y' and not female_only == 'n':
-    female_only = input('Would you like housing that is female only? (y/n): ')
+    female_only = input('Would female only accomodations work for you? (y/n): ')
+"""
 shared = ''
 while not shared == 'y' and not shared == 'n':
     shared = input('Would you be okay with shared accomodations? (y/n): ')
@@ -71,6 +71,25 @@ def link_explorer(link: str) -> tuple:
     description = content.find('div', class_='descriptionContainer-231909819').div.p.text
     return (is_furnished, pets_allowed, location, description)
 
+def check_female_only(title: str, description: str) -> bool:
+    """ Checks if title or description contain any wording
+    if the listing is for females only, then sees if user
+    would be okay with female only accomodations, returns
+    True if compatible, returns False otherwise.
+    """
+    t1 = 'female'
+    t2 = 'girl'
+    t1s = 'females'
+    t2s = 'girls'
+    t3 = 'only'
+    title = title.lower()
+    description = description.lower()
+    combos = (t1 + ' ' + t3, t2 + ' ' + t3, t3 + ' ' + t1, t3 + ' ' + t2, t1s + ' ' + t3, t2s + ' ' + t3, t3 + ' ' + t1s, t3 + ' ' + t2s)
+    for combo in combos:
+        if combo in title or combo in description:
+            return True
+    return False
+
 
 url = url_city_adder(city)
 
@@ -99,11 +118,12 @@ for ad in ads:
     if furnished == 'y' and (not is_furnished or is_furnished == 'unknown'):
         continue
     title = title_link.text.strip()
-    listings[number] = (price, time, link, is_furnished, pets_allowed, location, description, title)
+    only_females = check_female_only(title, description)
+    listings[number] = (price, time, link, is_furnished, pets_allowed, location, description, title, only_females)
     number += 1
 
 for listing in listings:
-    price, time, link, is_furnished, pets_allowed, location, description, title = listings[listing]
+    price, time, link, is_furnished, pets_allowed, location, description, title, only_females = listings[listing]
     print(title)
     print(f'Price: {price}')
     print(f'Posted: {time}')
@@ -111,4 +131,5 @@ for listing in listings:
     print(f'Furnished: {is_furnished}')
     print(f'Pets allowed: {pets_allowed}')
     print(location)
+    print(f'ONLY FEMALES: {only_females}')
     print('----------------------------------------------------------------')
