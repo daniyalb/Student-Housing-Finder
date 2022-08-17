@@ -19,7 +19,7 @@ COMBOS_M = (t1m + t3, t2m + t3, t3 + t1m, t3 + t2m, t1sm + t3, t2sm + t3, t3 + t
 
 #city = input('Which city would you like to search in? ')
 #city = city.lower() TODO: Unhide this and delete next line
-city = 'toronto'
+city = 'london'
 max_price = input('What is the highest price you are willing to rent for? $')
 max_price = int(max_price)
 pets = ''
@@ -31,9 +31,9 @@ while not furnished == 'y' and not furnished == 'n':
 female_only = ''
 while not female_only == 'y' and not female_only == 'n':
     female_only = input('Would female only accomodations work for you? (y/n): ')
-shared = ''
-while not shared == 'y' and not shared == 'n':
-    shared = input('Would you be okay with shared accomodations? (y/n): ')
+male_only = ''
+while not male_only == 'y' and not male_only == 'n':
+    male_only = input('Would male only accomodations work for you? (y/n): ')
 print('')
 
 def url_city_adder(city: str) -> str:
@@ -56,7 +56,7 @@ def url_city_adder(city: str) -> str:
     elif city == 'kingston':
         return 'https://www.kijiji.ca/b-for-rent/kingston-on/student/k0c30349001l1700183?rb=true&ad=offering'
     elif city == 'london':
-        return 'https://www.kijiji.ca/b-for-rent/london/student/k0c30349001l1700214?rb=true&ad=offering' # TODO: London causes error
+        return 'https://www.kijiji.ca/b-for-rent/london/student/k0c30349001l1700214?rb=true&ad=offering'
 
 def price_formatter(price: str) -> str:
     price = price[1:]
@@ -75,9 +75,6 @@ def link_explorer(link: str) -> tuple:
     content = BeautifulSoup(html_text, 'lxml')
 
     holder = content.find_all('ul', class_='itemAttributeList-1090551278') 
-    # TODO: These listings have different setup: 
-    # https://www.kijiji.ca/v-apartments-condos/city-of-toronto/all-inclusive-5-bedroom-2-bathroom-house/1628835421
-    # https://www.kijiji.ca/v-apartments-condos/city-of-toronto/one-bedroom-basement-apartment-for-rent/1628843352
     is_furnished = pets_allowed = 'unknown'
     for info in holder:
         if not info.li is None:
