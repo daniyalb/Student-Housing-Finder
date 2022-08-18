@@ -151,3 +151,21 @@ for listing in listings:
     print(f'ONLY FEMALES: {only_females}')
     print(f'ONLY MALES: {only_males}')
     print('----------------------------------------------------------------')
+
+
+
+"""
+rf = tk.RIDGE
+frame1 = tk.Frame(master=window, relief=rf, borderwidth=5, bg='black')
+frame2 = tk.Frame(master=window, relief=rf, borderwidth=5, bg='black')
+frame1.pack()
+frame2.pack()
+lbl = tk.Label(master=frame1, text="Type something here:", bg='white', fg='black')
+lbl.pack()
+btn = tk.Button(master=frame2, text="Click me!", width=10, height=10, bg="blue", fg="yellow")
+btn.pack()
+enty = tk.Entry(master=frame1, fg='black', bg='white', width=10)
+enty.pack()
+w = tk.Scale(master=frame2, from_=0, to=200)
+w.pack()
+"""
