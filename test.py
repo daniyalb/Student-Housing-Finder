@@ -1,6 +1,7 @@
 from operator import is_
 from bs4 import BeautifulSoup
 from datetime import datetime
+from os.path import exists
 import requests   
 
 
@@ -59,9 +60,9 @@ class Finder:
         self.female_only = female_only
         self.male_only = male_only
         self._combos_f, self._combos_m = self._get_combos()
-        self._listings = {}
+        self._links = self._get_links()
 
-    def _get_combos(self) -> tuple[tuple]:
+    def _get_combos(self) -> tuple[tuple, tuple]:
         t1f = 'female'
         t2f = 'girl'
         t1sf = 'females'
@@ -76,7 +77,17 @@ class Finder:
                     t3 + t2sf, t1f + t4, t1f, t2f)
         combos_m = (t1m + t3, t2m + t3, t3 + t1m, t3 + t2m, t1sm + t3, t2sm + t3, t3 + t1sm,
                     t3 + t2sm, t1m + t4, t1m, t2m)
-        return combos_f, combos_m 
+        return (combos_f, combos_m)
+
+    def _get_links(self) -> dict[str, None]:
+        links_dict = {}
+        if exists('links.txt'):
+            with open('links.txt', 'r') as txt:
+                links = txt.readlines()
+                for link in links:
+                    link = link.replace('\n', '')
+                    links_dict[link] = None
+        return links_dict
 
     def _url_city_adder(self) -> str:
         if self.city == 'mississauga / peel region':
@@ -156,6 +167,13 @@ class Finder:
                 return 'Yes'
         return 'No'
 
+    def _record_links(self, listings: dict) -> None:
+        with open('links.txt', 'a') as txt:
+            for link in listings:
+                txt.write(f'{link}\n')
+                self._links[link] = None
+            
+
     def _record_results(self, listings: dict) -> tuple:
         now = datetime.now()
         date_time = now.strftime('%d|%m|%Y %H.%M.%S')
@@ -177,6 +195,8 @@ class Finder:
                 txt.write(f'Only Males: {only_males}\n\n\n')
                 i += 1
 
+        self._record_links(listings)
+
         return (len(listings), f'{date_time}.txt')
 
     def search(self) -> tuple:
@@ -186,11 +206,11 @@ class Finder:
         content = BeautifulSoup(html_text, 'lxml')
         all_results = content.find('div', class_='container-results large-images').find_next()
         ads = all_results.find_all('div', class_='search-item regular-ad')
-        temp_listings = {}
+        listings = {}
         for ad in ads:
             title_link = ad.find('div', class_='title').a
             link = 'https://www.kijiji.ca' + title_link['href']
-            if link in self._listings:
+            if link in self._links:
                 continue
             price = ad.find('div', class_='price').text.strip()
             if price == 'Please Contact' or price == 'Swap / Trade':
@@ -210,9 +230,8 @@ class Finder:
             title = title_link.text.strip()
             only_females = self._check_gender_only('female', title, description) # TODO: add filtering for these results
             only_males = self._check_gender_only('male', title, description)
-            self._listings[link] = (price, time, is_furnished, pets_allowed, location, title, only_females, only_males)
-            temp_listings[link] = self._listings[link]
-        return self._record_results(temp_listings)
+            listings[link] = (price, time, is_furnished, pets_allowed, location, title, only_females, only_males)
+        return self._record_results(listings)
 
 
 if __name__ == '__main__':
@@ -224,141 +243,3 @@ if __name__ == '__main__':
     male_only = False
     find = Finder(city, max_price, pets, furnished, female_only, male_only)
     find.search()
-
-
-#city = input('Which city would you like to search in? ')
-#city = city.lower() TODO: Unhide this and delete next line
-
-"""
-max_price = input('What is the highest price you are willing to rent for? $')
-max_price = int(max_price)
-pets = ''
-while not pets == 'y' and not pets == 'n':
-    pets = input('Do you require your housing to be pet-friendly? (y/n): ')
-furnished = ''
-while not furnished == 'y' and not furnished == 'n':
-    furnished = input('Would you want your housing to be furnished? (y/n): ')
-female_only = ''
-while not female_only == 'y' and not female_only == 'n':
-    female_only = input('Would female only accomodations work for you? (y/n): ')
-male_only = ''
-while not male_only == 'y' and not male_only == 'n':
-    male_only = input('Would male only accomodations work for you? (y/n): ')
-print('')
-
-
-def url_city_adder(city: str) -> str:
-    if city == 'mississauga / peel region':
-        return 'https://www.kijiji.ca/b-for-rent/mississauga-peel-region/student/k0c30349001l1700276?rb=true&ad=offering'
-    elif city == 'toronto':
-        return 'https://www.kijiji.ca/b-for-rent/city-of-toronto/student/k0c30349001l1700273?rb=true&ad=offering'
-    elif city == 'markham / york region':
-        return 'https://www.kijiji.ca/b-for-rent/markham-york-region/student/k0c30349001l1700274?rb=true&ad=offering'
-    elif city == 'oakville / halton region':
-        return 'https://www.kijiji.ca/b-for-rent/oakville-halton-region/student/k0c30349001l1700277?rb=true&ad=offering'
-    elif city == 'hamilton':
-        return 'https://www.kijiji.ca/b-for-rent/hamilton/student/k0c30349001l80014?rb=true&ad=offering'
-    elif city == 'guelph':
-        return 'https://www.kijiji.ca/b-for-rent/guelph/student/k0c30349001l1700242?rb=true&ad=offering'
-    elif city == 'kitchener / waterloo':
-        return 'https://www.kijiji.ca/b-for-rent/kitchener-waterloo/student/k0c30349001l1700212?rb=true&ad=offering'
-    elif city == 'oshawa / durham region':
-        return 'https://www.kijiji.ca/b-for-rent/oshawa-durham-region/student/k0c30349001l1700275?rb=true&ad=offering'
-    elif city == 'kingston':
-        return 'https://www.kijiji.ca/b-for-rent/kingston-on/student/k0c30349001l1700183?rb=true&ad=offering'
-    elif city == 'london':
-        return 'https://www.kijiji.ca/b-for-rent/london/student/k0c30349001l1700214?rb=true&ad=offering'
-
-def price_formatter(price: str) -> str:
-    price = price[1:]
-    price = price[:price.find('.')]
-    price = price.replace(',', '')
-    return int(price)
-
-def _check_included(info) -> str:
-    included = info.li.dl.dd.text
-    if included == 'Yes':
-        return 'Yes'
-    return 'No'
-
-def link_explorer(link: str) -> tuple:
-    html_text = requests.get(link).text
-    content = BeautifulSoup(html_text, 'lxml')
-
-    holder = content.find_all('ul', class_='itemAttributeList-1090551278') 
-    is_furnished = pets_allowed = 'unknown'
-    for info in holder:
-        if not info.li is None:
-            name = info.li.dl.dt.text
-            if name == 'Furnished':
-                is_furnished = _check_included(info)
-            else:
-                pets_allowed = _check_included(info)
-
-    location = content.find('span', class_='address-3617944557').text
-    description = content.find('div', class_='descriptionContainer-231909819').div.p.text
-
-    return (is_furnished, pets_allowed, location, description)
-
-def check_gender_only(gender: str, title: str, description: str) -> str:
-    title = title.lower()
-    description = description.lower()
-    if gender == 'female':
-        combos = COMBOS_F
-    else:
-        combos = COMBOS_M
-    for combo in combos:
-        if combo in title or combo in description:
-            return 'Yes'
-    return 'No'
-
-
-url = url_city_adder(city)
-
-html_text = requests.get(url).text
-content = BeautifulSoup(html_text, 'lxml')
-all_results = content.find('div', class_='container-results large-images').find_next()
-ads = all_results.find_all('div', class_='search-item regular-ad')
-listings = {}
-number = 1
-for ad in ads:
-    price = ad.find('div', class_='price').text.strip()
-    if price == 'Please Contact' or price == 'Swap / Trade':
-        continue
-    else:
-        price = price_formatter(price)
-        if price > max_price:
-            continue
-    time = ad.find('span', class_='date-posted').text
-    if not time[0] == '<':
-        continue
-    title_link = ad.find('div', class_='title').a
-    link = 'https://www.kijiji.ca' + title_link['href']
-    is_furnished, pets_allowed, location, description = link_explorer(link)
-    if pets == 'y' and (pets_allowed == 'No' or pets_allowed == 'unknown'):
-        continue
-    if furnished == 'y' and (is_furnished == 'No' or is_furnished == 'unknown'):
-        continue
-    title = title_link.text.strip()
-    only_females = check_gender_only('female', title, description)
-    only_males = check_gender_only('male', title, description)
-    listings[number] = (price, time, link, is_furnished, pets_allowed, location, description, title, only_females, only_males)
-    number += 1
-
-with open('Results.txt', 'a') as txt:
-    i = 1
-    for listing in listings:
-        price, time, link, is_furnished, pets_allowed, location, description, title, only_females, only_males = listings[listing]
-
-        txt.write(f'Listing #{i}:\n')
-        txt.write(f'{title}\n')
-        txt.write(f'Price: {price}\n')
-        txt.write(f'Posted: {time}\n')
-        txt.write(f'Link: {link}\n')
-        txt.write(f'Furnished: {is_furnished}\n')
-        txt.write(f'Pets Allowed: {pets_allowed}\n')
-        txt.write(f'{location}\n')
-        txt.write(f'Only Females: {only_females}\n')
-        txt.write(f'Only Males: {only_males}\n\n\n')
-        i += 1
-"""

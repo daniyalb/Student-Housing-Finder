@@ -17,15 +17,6 @@ BG_COLOUR = '#d6d6d6'
 FONT = ('courier', 20)
 FONT_B = ('courier', 20, 'bold')
 FONT_S = ('courier', 15)
-###
-city = 'mississauga / peel region'
-max_price = 1500
-pets = False
-furnished = False
-female_only = False
-male_only = False
-FINDER = Finder(city, max_price, pets, furnished, female_only, male_only)
-###
 
 class Controller():
     """ The Controller Class
@@ -41,6 +32,7 @@ class Controller():
              main frame
     """
     frames: dict
+    finder: Finder
 
     def __init__(self) -> None:
         """ Initialize the frames dictionary containing the objects of each
@@ -48,14 +40,16 @@ class Controller():
         page
         """
         self.frames = {}
+        self.finder = None
 
-        for page in (GetFilters, MainApp):
+        for page in (Filters, MainApp):
             self.frames[page] = page(self)
 
         if self.check_filters():
+            self.finder = self.create_finder()
             self.show_frame(MainApp)
         else:
-            self.show_frame(GetFilters)
+            self.show_frame(Filters)
 
     def check_filters(self) -> bool:
         """ Checks if filters have already been specified in a file named
@@ -68,7 +62,54 @@ class Controller():
         frame = self.frames[type].main_frame
         frame.tkraise()
 
-class GetFilters():
+    def create_finder(self) -> Finder:
+        with open('filters.txt', 'r') as f:
+            filters = f.readlines()
+        
+        filter_dict = self._read_filters(filters)
+
+        city = 'mississauga / peel region'
+        max_price = filter_dict['max price']
+        pets = filter_dict['pets']
+        furnished = filter_dict['furnished']
+        female_only = filter_dict['female-only']
+        male_only = filter_dict['male-only']
+
+        return Finder(city, max_price, pets, furnished, female_only, male_only)
+    
+    def _read_filters(self, filters) -> dict:
+        filter_dict = {}
+
+        for i in range(len(filters)):
+            filters[i] = filters[i].replace('\n', '')
+
+            if i == 0:
+                if filters[i] == '1':
+                    filter_dict['pets'] = True
+                else:
+                    filter_dict['pets'] = False
+            elif i == 1:
+                if filters[i] == '1':
+                    filter_dict['furnished'] = True
+                else:
+                    filter_dict['furnished'] = False
+            elif i == 2:
+                filter_dict['max price'] = int(filters[i])
+            elif i == 3:
+                if filters[i] == '1':
+                    filter_dict['female-only'] = True
+                else:
+                    filter_dict['female-only'] = False
+            elif i == 4:
+                if filters[i] == '1':
+                    filter_dict['male-only'] = True
+                else:
+                    filter_dict['male-only'] = False
+
+        return filter_dict
+
+
+class Filters():
     def __init__(self, controller) -> None:
         self.controller = controller
         self.main_frame = tk.Frame(master=window, width=WIDTH, height=HEIGHT, bg=BG_COLOUR)
@@ -143,11 +184,12 @@ class GetFilters():
         for value in values:
             if value.get() == 0:
                 valid_filters = False
-                self.error_text.set('Please make sure all questions are answered\nand max price is not $0')
+                self.error_text.set('Please make sure all questions are\nanswered and max price is not $0')
 
         if valid_filters:
             self._write_filters(values)
             self._reset_filters(values)
+            self.controller.finder = self.controller.create_finder()
             self.controller.show_frame(MainApp)
 
     def _write_filters(self, values):
@@ -162,6 +204,7 @@ class GetFilters():
 
 class MainApp():
     def __init__(self, controller) -> None:
+        self.controller = controller
         self.main_frame = tk.Frame(master=window, width=WIDTH, height=HEIGHT, bg=BG_COLOUR)
         self.main_frame.grid(column=0, row=0, columnspan=2, rowspan=2, sticky='nsew')
 
@@ -197,7 +240,7 @@ class MainApp():
         # Create buttons & slider for left side of screen
         start_btn = tk.Button(master=frame_L, text='Start Search', font=FONT, command=self.search)
         auto_btn = tk.Button(master=frame_L, text='Auto Search', font=FONT, command=get_minutes)
-        reset_btn = tk.Button(master=frame_L, text='Reset Filters', font=FONT, command = lambda : controller.show_frame(GetFilters))
+        reset_btn = tk.Button(master=frame_L, text='Reset Filters', font=FONT, command = lambda : controller.show_frame(Filters))
 
         # Position buttons & slider
         start_btn.grid(column=0, row=0, sticky='nsew', padx=20, pady=20)
@@ -213,7 +256,7 @@ class MainApp():
         status_window.pack()
 
     def search(self):
-        num_results, name = FINDER.search()
+        num_results, name = self.controller.finder.search()
         self.status_text.set(f'Found {num_results} results matching your filters!\nFind the listings in {name}')
 
 if __name__ == '__main__':
