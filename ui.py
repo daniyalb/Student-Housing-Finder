@@ -55,7 +55,7 @@ class Controller():
         """ Checks if filters have already been specified in a file named
         filters.txt, returns true if they have, and false otherwise
         """
-        return exists('filters.txt')
+        return exists('Program Files/filters.txt')
 
     def show_frame(self, type):
         """ Show the main frame corresponding to <type>"""
@@ -63,7 +63,7 @@ class Controller():
         frame.tkraise()
 
     def create_finder(self) -> Finder:
-        with open('filters.txt', 'r') as f:
+        with open('Program Files/filters.txt', 'r') as f:
             filters = f.readlines()
         
         filter_dict = self._read_filters(filters)
@@ -193,7 +193,7 @@ class Filters():
             self.controller.show_frame(MainApp)
 
     def _write_filters(self, values):
-        with open('filters.txt', 'w') as f:
+        with open('Program Files/filters.txt', 'w') as f:
             for value in values:
                 f.write(f'{value.get()}\n')
 
@@ -257,7 +257,10 @@ class MainApp():
 
     def search(self):
         num_results, name = self.controller.finder.search()
-        self.status_text.set(f'Found {num_results} results matching your filters!\nFind the listings in {name}')
+        if num_results == 0:
+            self.status_text.set(f'Found {num_results} results matching your filters.\nNo new file was created in the Results folder.')
+        else:
+            self.status_text.set(f'Found {num_results} results matching your filters!\nFind the listings in the Results folder within a\nfile titled: {name}')
 
 if __name__ == '__main__':
     window = tk.Tk()

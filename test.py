@@ -81,8 +81,8 @@ class Finder:
 
     def _get_links(self) -> dict[str, None]:
         links_dict = {}
-        if exists('links.txt'):
-            with open('links.txt', 'r') as txt:
+        if exists('Program Files/links.txt'):
+            with open('Program Files/links.txt', 'r') as txt:
                 links = txt.readlines()
                 for link in links:
                     link = link.replace('\n', '')
@@ -168,17 +168,20 @@ class Finder:
         return 'No'
 
     def _record_links(self, listings: dict) -> None:
-        with open('links.txt', 'a') as txt:
+        with open('Program Files/links.txt', 'a') as txt:
             for link in listings:
                 txt.write(f'{link}\n')
                 self._links[link] = None
             
 
     def _record_results(self, listings: dict) -> tuple:
+        if len(listings) == 0:
+            return (0, None)
+
         now = datetime.now()
         date_time = now.strftime('%d|%m|%Y %H.%M.%S')
 
-        with open(f'{date_time}.txt', 'a') as txt:
+        with open(f'Results/{date_time}.txt', 'a') as txt:
             i = 1
             for link in listings:
                 price, time, is_furnished, pets_allowed, location, title, only_females, only_males = listings[link]
