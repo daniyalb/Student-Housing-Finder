@@ -1,7 +1,6 @@
-from calendar import c
-import fractions
-from re import T
+import time
 import tkinter as tk
+from turtle import width
 from typing_extensions import IntVar
 from PIL import Image, ImageTk
 from test import Finder
@@ -14,6 +13,8 @@ HEIGHT = 480
 Q_XPAD = 10
 RADIO_PAD = 30
 BG_COLOUR = '#d6d6d6'
+GREEN = '#0e7d00'
+RED = '#c41000'
 FONT = ('courier', 20)
 FONT_B = ('courier', 20, 'bold')
 FONT_S = ('courier', 15)
@@ -169,7 +170,7 @@ class Filters():
         radio_male_y.grid(row=4, column=2, sticky='nsew', padx=RADIO_PAD, pady=5)
         radio_male_n.grid(row=4, column=3, sticky='nsew', padx=RADIO_PAD, pady=5)
 
-        confirm_btn = tk.Button(master=r_frame, text='Confirm Filters', fg='white', font=FONT, highlightbackground='#0e7d00',
+        confirm_btn = tk.Button(master=r_frame, text='Confirm Filters', fg='white', font=FONT, highlightbackground=GREEN,
         command = self._check_filters)
         confirm_btn.grid(column=2, columnspan=2, row=6, sticky='ew', padx=100)
 
@@ -211,6 +212,7 @@ class MainApp():
         # Set up frames for UI
         title_frame = tk.Frame(master=self.main_frame, width=WIDTH, height=ROW_HEIGHT, bg=BG_COLOUR)
         frame_L = tk.Frame(master=self.main_frame, width=WIDTH//2, height=400, bg=BG_COLOUR)
+        frame_L_sub = tk.Frame(master=frame_L, width=WIDTH//2, bg=BG_COLOUR)
         frame_R = tk.Frame(master=self.main_frame, width=WIDTH//2, height=400, bg=BG_COLOUR)
 
         # Set up header for application
@@ -223,28 +225,34 @@ class MainApp():
         # Set grid locations of frames
         title_frame.grid(row=0, columnspan=2, sticky='nsew')
         frame_L.grid(row=1, column=0, sticky='nsew')
+        frame_L_sub.grid(column=0, row=2, sticky='nsew')
         frame_R.grid(row=1, column=1, sticky='nsew')
 
         # Set minimum sizes for left frame rows/columns
         frame_L.columnconfigure(0, minsize=WIDTH//2)
         frame_L.rowconfigure([0, 1, 3], minsize=100)
         frame_L.rowconfigure(2, minsize=50)
+        frame_L_sub.columnconfigure([0, 1], minsize=WIDTH//4)
 
         self.frames = (title_frame, frame_L, frame_R)
 
-        def get_minutes():
-            time_sldr = tk.Scale(master=frame_L, from_=1, to=10, orient=tk.HORIZONTAL, bg=BG_COLOUR, fg='black')
-            time_sldr.grid(column=0, row=2, sticky='nsew', padx=20, pady=5)
-            self.status_text.set('Please use the slider to select how often you\nwould like the Auto Search to be performed\n(in minutes), Then press Auto Search again to\nbegin the process')
-
         # Create buttons & slider for left side of screen
-        start_btn = tk.Button(master=frame_L, text='Start Search', font=FONT, command=self.search)
-        auto_btn = tk.Button(master=frame_L, text='Auto Search', font=FONT, command=get_minutes)
-        reset_btn = tk.Button(master=frame_L, text='Reset Filters', font=FONT, command = lambda : controller.show_frame(Filters))
+        start_btn = tk.Button(master=frame_L, text='Start Search', font=FONT, highlightbackground=GREEN, command=self.search)
+        auto_btn = tk.Button(master=frame_L, text='Auto Search', font=FONT, command=self.get_minutes)
+        self.time_sldr = tk.Scale(master=frame_L_sub, from_=1, to=10, orient=tk.HORIZONTAL, bg=BG_COLOUR, fg='black', label='Select time in minutes:', tickinterval=1.0)
+        self.confirm_btn = tk.Button(master=frame_L_sub, text='Begin Auto Search', font=FONT_S, highlightbackground=GREEN, command=self.start_auto_search)
+        self.stop_btn = tk.Button(master=frame_L, text='Stop Auto Search', font=FONT_S, highlightbackground=RED)
+        reset_btn = tk.Button(master=frame_L, text='Reset Filters', font=FONT, command=self.reset_filters)
 
         # Position buttons & slider
         start_btn.grid(column=0, row=0, sticky='nsew', padx=20, pady=20)
         auto_btn.grid(column=0, row=1, sticky='nsew', padx=20, pady=20)
+        self.time_sldr.grid(column=0, row=0, sticky='nsew', padx=10, pady=5)
+        self.time_sldr.grid_remove()
+        self.confirm_btn.grid(column=1, row=0, sticky='nsew', padx=10, pady=20)
+        self.confirm_btn.grid_remove()
+        self.stop_btn.grid(column=0, row=2, sticky='nsew', padx=80, pady=20)
+        self.stop_btn.grid_remove()
         reset_btn.grid(column=0, row=3, sticky='nsew', padx=20, pady=20)
 
         # Add status window to right of screen
@@ -256,11 +264,50 @@ class MainApp():
         status_window.pack()
 
     def search(self):
+        self.status_text.set('Searching for listings on kijiji.ca that match\nyour filters...')
+        window.update()
+
         num_results, name = self.controller.finder.search()
         if num_results == 0:
             self.status_text.set(f'Found {num_results} results matching your filters.\nNo new file was created in the Results folder.')
         else:
             self.status_text.set(f'Found {num_results} results matching your filters!\nFind the listings in the Results folder within a\nfile titled: {name}')
+
+    def get_minutes(self):
+        self.stop_btn.grid_remove()
+        self.time_sldr.grid()
+        self.confirm_btn.grid()
+        self.status_text.set('Please use the slider to select how often you\nwould like the Auto Search to be performed\n(in minutes), Then press Auto Search again to\nbegin the process')
+
+    def start_auto_search(self):
+        self.time = self.time_sldr.get()
+        self.status_text.set(f'Auto Searching for listings matching your filters\nevery {self.time} minute(s)')
+        self.auto_search = True
+        self.time_sldr.grid_remove()
+        self.confirm_btn.grid_remove()
+        self.stop_btn.grid()
+        window.update()
+        window.after(10000, self._auto_search)
+
+    def _auto_search(self):
+        self.search()
+        self.status_text.set(f'{self.status_text.get()}\n\nAuto Searching for listings matching your filters\nevery {self.time} minute(s)')
+        if self.auto_search:
+            window.after(10000, self._auto_search)
+
+    def reset_filters(self):
+        self.time_sldr.grid_remove()
+        self.confirm_btn.grid_remove()
+        self.stop_btn.grid_remove()
+        self.status_text.set('Waiting for selection...')
+        self.controller.show_frame(Filters)
+
+    def stop_auto_search(self):
+        self.auto_search = False
+        self.stop_btn.grid_remove()
+        self.status_text.set('Auto Search has been stopped!\n\nWaiting for selection...')
+        window.update()
+
 
 if __name__ == '__main__':
     window = tk.Tk()

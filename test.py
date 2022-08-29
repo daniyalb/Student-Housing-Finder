@@ -176,7 +176,7 @@ class Finder:
 
     def _record_results(self, listings: dict) -> tuple:
         if len(listings) == 0:
-            return (0, None)
+            return (0, '')
 
         now = datetime.now()
         date_time = now.strftime('%d|%m|%Y %H.%M.%S')
