@@ -1,3 +1,4 @@
+from enum import auto
 import time
 import tkinter as tk
 from turtle import width
@@ -69,7 +70,7 @@ class Controller():
         
         filter_dict = self._read_filters(filters)
 
-        city = 'mississauga / peel region'
+        city = filter_dict['city']
         max_price = filter_dict['max price']
         pets = filter_dict['pets']
         furnished = filter_dict['furnished']
@@ -84,28 +85,29 @@ class Controller():
         for i in range(len(filters)):
             filters[i] = filters[i].replace('\n', '')
 
-            if i == 0:
-                if filters[i] == '1':
-                    filter_dict['pets'] = True
-                else:
-                    filter_dict['pets'] = False
-            elif i == 1:
-                if filters[i] == '1':
-                    filter_dict['furnished'] = True
-                else:
-                    filter_dict['furnished'] = False
-            elif i == 2:
-                filter_dict['max price'] = int(filters[i])
-            elif i == 3:
-                if filters[i] == '1':
-                    filter_dict['female-only'] = True
-                else:
-                    filter_dict['female-only'] = False
-            elif i == 4:
-                if filters[i] == '1':
-                    filter_dict['male-only'] = True
-                else:
-                    filter_dict['male-only'] = False
+        if filters[0] == '1':
+            filter_dict['pets'] = True
+        else:
+            filter_dict['pets'] = False
+
+        if filters[1] == '1':
+            filter_dict['furnished'] = True
+        else:
+            filter_dict['furnished'] = False
+
+        filter_dict['max price'] = int(filters[2])
+
+        if filters[3] == '1':
+            filter_dict['female-only'] = True
+        else:
+            filter_dict['female-only'] = False
+
+        if filters[4] == '1':
+            filter_dict['male-only'] = True
+        else:
+            filter_dict['male-only'] = False
+
+        filter_dict['city'] = filters[5]
 
         return filter_dict
 
@@ -150,7 +152,7 @@ class Filters():
         self.sldr_price = tk.Scale(master=r_frame, from_=0, to=5000, orient=tk.HORIZONTAL, bg=BG_COLOUR, fg='black', label='Select price in CAD', tickinterval=1000)
 
         lbl_price.grid(row=6, column=0, columnspan=2, sticky='nsew', padx=Q_XPAD, pady=10)
-        self.sldr_price.grid(row=7, column=0, columnspan=2, sticky='nsew', padx=Q_XPAD, pady=5)
+        self.sldr_price.grid(row=7, rowspan=2, column=0, columnspan=2, sticky='nsew', padx=Q_XPAD, pady=5)
 
         self.female_var = tk.IntVar()
         lbl_female = tk.Label(master=r_frame, text='Would female-only accomodations work for you?', bg=BG_COLOUR, fg='black', font=FONT_S)
@@ -170,13 +172,20 @@ class Filters():
         radio_male_y.grid(row=4, column=2, sticky='nsew', padx=RADIO_PAD, pady=5)
         radio_male_n.grid(row=4, column=3, sticky='nsew', padx=RADIO_PAD, pady=5)
 
+        self.cityVar = tk.StringVar()
+        self.cityVar.set('Select city to search in')
+        cityDrop = tk.OptionMenu(r_frame, self.cityVar, 'Toronto', 'Mississauga / Peel Region', 'Markham / York Region', 'Oakville / Halton Region',
+        'Hamilton', 'Guelph', 'Kitchener / Waterloo', 'Oshawa / Durham Region', 'Kingston', 'London')
+        cityDrop.configure(font=FONT_S, bg=BG_COLOUR, fg='black')
+        cityDrop.grid(column=2, columnspan=2, row=6, sticky='nsew', pady=10, padx=30)
+
         confirm_btn = tk.Button(master=r_frame, text='Confirm Filters', fg='white', font=FONT, highlightbackground=GREEN,
         command = self._check_filters)
-        confirm_btn.grid(column=2, columnspan=2, row=6, sticky='ew', padx=100)
+        confirm_btn.grid(column=2, columnspan=2, row=7, sticky='ew', padx=100, pady=10)
 
         self.error_text = tk.StringVar()
         error_lbl = tk.Label(master=r_frame, textvariable=self.error_text, fg='red', font=FONT_S, bg=BG_COLOUR)
-        error_lbl.grid(column=2, columnspan=2, row=7, sticky='nsew')
+        error_lbl.grid(column=2, columnspan=2, row=8, sticky='nsew')
 
 
     def _check_filters(self):
@@ -186,6 +195,12 @@ class Filters():
             if value.get() == 0:
                 valid_filters = False
                 self.error_text.set('Please make sure all questions are\nanswered and max price is not $0')
+
+        if self.cityVar.get() == 'Select city to search in':
+            valid_filters = False
+            self.error_text.set('Please make sure all questions are\nanswered and max price is not $0')
+        else:
+            values += (self.cityVar,)
 
         if valid_filters:
             self._write_filters(values)
@@ -198,10 +213,14 @@ class Filters():
             for value in values:
                 f.write(f'{value.get()}\n')
 
+        with open('Program Files/links.txt', 'w') as f:
+            f.write('') # Erase all links found with old filters
+
     def _reset_filters(self, values):
         self.error_text.set('')
-        for value in values:
-            value.set(0)
+        self.cityVar.set('Select city to search in')
+        for i in range(len(values) - 1):
+            values[i].set(0)
 
 class MainApp():
     def __init__(self, controller) -> None:
@@ -241,7 +260,7 @@ class MainApp():
         auto_btn = tk.Button(master=frame_L, text='Auto Search', font=FONT, command=self.get_minutes)
         self.time_sldr = tk.Scale(master=frame_L_sub, from_=1, to=10, orient=tk.HORIZONTAL, bg=BG_COLOUR, fg='black', label='Select time in minutes:', tickinterval=1.0)
         self.confirm_btn = tk.Button(master=frame_L_sub, text='Begin Auto Search', font=FONT_S, highlightbackground=GREEN, command=self.start_auto_search)
-        self.stop_btn = tk.Button(master=frame_L, text='Stop Auto Search', font=FONT_S, highlightbackground=RED)
+        self.stop_btn = tk.Button(master=frame_L, text='Stop Auto Search', font=FONT_S, highlightbackground=RED, command=self.stop_auto_search)
         reset_btn = tk.Button(master=frame_L, text='Reset Filters', font=FONT, command=self.reset_filters)
 
         # Position buttons & slider
@@ -281,19 +300,20 @@ class MainApp():
 
     def start_auto_search(self):
         self.time = self.time_sldr.get()
-        self.status_text.set(f'Auto Searching for listings matching your filters\nevery {self.time} minute(s)')
-        self.auto_search = True
         self.time_sldr.grid_remove()
         self.confirm_btn.grid_remove()
         self.stop_btn.grid()
-        window.update()
-        window.after(10000, self._auto_search)
+        self._auto_search()
 
     def _auto_search(self):
         self.search()
         self.status_text.set(f'{self.status_text.get()}\n\nAuto Searching for listings matching your filters\nevery {self.time} minute(s)')
-        if self.auto_search:
-            window.after(10000, self._auto_search)
+        self.auto_loop = window.after(self.time*60000, self._auto_search)
+
+    def stop_auto_search(self):
+        window.after_cancel(self.auto_loop)
+        self.stop_btn.grid_remove()
+        self.status_text.set('Auto Search has been stopped!\n\nWaiting for selection...')
 
     def reset_filters(self):
         self.time_sldr.grid_remove()
@@ -301,12 +321,6 @@ class MainApp():
         self.stop_btn.grid_remove()
         self.status_text.set('Waiting for selection...')
         self.controller.show_frame(Filters)
-
-    def stop_auto_search(self):
-        self.auto_search = False
-        self.stop_btn.grid_remove()
-        self.status_text.set('Auto Search has been stopped!\n\nWaiting for selection...')
-        window.update()
 
 
 if __name__ == '__main__':

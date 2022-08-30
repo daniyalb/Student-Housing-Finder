@@ -90,25 +90,25 @@ class Finder:
         return links_dict
 
     def _url_city_adder(self) -> str:
-        if self.city == 'mississauga / peel region':
+        if self.city == 'Mississauga / Peel Region':
             return 'https://www.kijiji.ca/b-for-rent/mississauga-peel-region/student/k0c30349001l1700276?rb=true&ad=offering'
-        elif self.city == 'toronto':
+        elif self.city == 'Toronto':
             return 'https://www.kijiji.ca/b-for-rent/city-of-toronto/student/k0c30349001l1700273?rb=true&ad=offering'
-        elif self.city == 'markham / york region':
+        elif self.city == 'Markham / York Region':
             return 'https://www.kijiji.ca/b-for-rent/markham-york-region/student/k0c30349001l1700274?rb=true&ad=offering'
-        elif self.city == 'oakville / halton region':
+        elif self.city == 'Oakville / Halton Region':
             return 'https://www.kijiji.ca/b-for-rent/oakville-halton-region/student/k0c30349001l1700277?rb=true&ad=offering'
-        elif self.city == 'hamilton':
+        elif self.city == 'Hamilton':
             return 'https://www.kijiji.ca/b-for-rent/hamilton/student/k0c30349001l80014?rb=true&ad=offering'
-        elif self.city == 'guelph':
+        elif self.city == 'Guelph':
             return 'https://www.kijiji.ca/b-for-rent/guelph/student/k0c30349001l1700242?rb=true&ad=offering'
-        elif self.city == 'kitchener / waterloo':
+        elif self.city == 'Kitchener / Waterloo':
             return 'https://www.kijiji.ca/b-for-rent/kitchener-waterloo/student/k0c30349001l1700212?rb=true&ad=offering'
-        elif self.city == 'oshawa / durham region':
+        elif self.city == 'Oshawa / Durham Region':
             return 'https://www.kijiji.ca/b-for-rent/oshawa-durham-region/student/k0c30349001l1700275?rb=true&ad=offering'
-        elif self.city == 'kingston':
+        elif self.city == 'Kingston':
             return 'https://www.kijiji.ca/b-for-rent/kingston-on/student/k0c30349001l1700183?rb=true&ad=offering'
-        elif self.city == 'london':
+        elif self.city == 'London':
             return 'https://www.kijiji.ca/b-for-rent/london/student/k0c30349001l1700214?rb=true&ad=offering'
 
     def _price_formatter(self, price: str) -> str:
@@ -138,15 +138,15 @@ class Finder:
                     pets_allowed = self._check_included(info)
 
         location = content.find('div', class_='locationContainer-2867112055')
-        if location == None:
-            location = 'Error'
-        else:
+        try:
             location = location.span.text
+        except AttributeError:
+            location = 'Error'
         description = content.find('div', class_='descriptionContainer-231909819')
-        if description == None:
-            description = 'Error'
-        else:
+        try:
             description = description.div.p.text
+        except AttributeError:
+            description = 'Error'
 
         return (is_furnished, pets_allowed, location, description)
 
@@ -212,6 +212,7 @@ class Finder:
         listings = {}
         for ad in ads:
             title_link = ad.find('div', class_='title').a
+            title = title_link.text.strip()
             link = 'https://www.kijiji.ca' + title_link['href']
             if link in self._links:
                 continue
@@ -223,16 +224,17 @@ class Finder:
                 if price > self.max_price:
                     continue
             time = ad.find('span', class_='date-posted').text
-            if not time[0] == '<':
-                continue
             is_furnished, pets_allowed, location, description = self._link_explorer(link)
-            if self.pets and (pets_allowed == 'No' or pets_allowed == 'unknown'):
+            if self.pets and pets_allowed == 'No':
                 continue
-            if self.furnished and (is_furnished == 'No' or is_furnished == 'unknown'):
+            if self.furnished and is_furnished == 'No':
                 continue
-            title = title_link.text.strip()
-            only_females = self._check_gender_only('female', title, description) # TODO: add filtering for these results
+            only_females = self._check_gender_only('female', title, description)
             only_males = self._check_gender_only('male', title, description)
+            if not self.female_only and only_females == 'Yes':
+                continue
+            if not self.male_only and only_males == 'Yes':
+                continue
             listings[link] = (price, time, is_furnished, pets_allowed, location, title, only_females, only_males)
         return self._record_results(listings)
 
