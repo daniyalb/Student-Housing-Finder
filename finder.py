@@ -246,7 +246,7 @@ class Finder:
 
                 txt.write(f'Listing #{i}:\n')
                 txt.write(f'{title}\n')
-                txt.write(f'Price: {price}\n')
+                txt.write(f'Price: ${price}\n')
                 txt.write(f'Posted: {time}\n')
                 txt.write(f'Link: {link}\n')
                 txt.write(f'Furnished: {is_furnished}\n')
