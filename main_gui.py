@@ -480,6 +480,9 @@ class MainApp:
 
         self._make_buttons()
 
+        # Set the auto loop initially to None
+        self._auto_loop = None
+
         # Add status window to right of screen
         status_lbl = tk.Label(master=self._frame_r, text='STATUS', bg=BG_COLOUR,
                               fg=TEXT_COLOUR, font=FONT)
@@ -621,7 +624,8 @@ class MainApp:
         self._status_text.set(f'{self._status_text.get()}\n\nAuto Searching for '
                              f'listings matching your filters\nevery '
                              f'{self._time_sldr.get()} minute(s)')
-        self._auto_loop = window.after(self._time_sldr.get()*60000,
+        timing = 10000
+        self._auto_loop = window.after(timing,
                                       self._auto_search)
 
     def stop_auto_search(self):
@@ -630,6 +634,7 @@ class MainApp:
         auto search has stopped
         """
         window.after_cancel(self._auto_loop)
+        self._auto_loop = None
         self._stop_btn.grid_remove()
         self._status_text.set('Auto Search has been stopped!\n\nWaiting for '
                              'selection...')
@@ -643,6 +648,8 @@ class MainApp:
         self._time_sldr.grid_remove()
         self._confirm_btn.grid_remove()
         self._stop_btn.grid_remove()
+        if self._auto_loop:
+            self.stop_auto_search()
         self._status_text.set('Waiting for selection...')
         self.controller.show_frame(Filters)
 
