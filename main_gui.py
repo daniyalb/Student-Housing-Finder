@@ -624,8 +624,7 @@ class MainApp:
         self._status_text.set(f'{self._status_text.get()}\n\nAuto Searching for '
                              f'listings matching your filters\nevery '
                              f'{self._time_sldr.get()} minute(s)')
-        timing = 10000
-        self._auto_loop = window.after(timing,
+        self._auto_loop = window.after(self._time_sldr.get() * 60000,
                                       self._auto_search)
 
     def stop_auto_search(self):
