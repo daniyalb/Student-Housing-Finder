@@ -14,6 +14,11 @@
 6. Install the beepy package for notification sounds: `pip install beepy`
 7. Run main_gui.py
 # Reflection
-This was a side project I made to continue to improve my programming skills with Python and to also explore something which has always been interesting to me, web scraping. 
+This was a side project I made to continue to improve my programming skills with Python and to also explore something which has always been interesting to me, web scraping.
+
 The idea for this project came from issues I heard from my peers at university about finding housing and rentals in the time prior to university starting. Their main complaint was that listings would be posted and dissapear quickly as many people are looking for housing at that time and so they would have to sit on sites like kijiji.ca and keep reloading until a listing would pop up, then they would have to read through it to see if its a match, and finally contact the owner. When I heard about these problems, I thought that I could make a solution that would save students time in searching for housing and make the whole process a bit easier.
+
 To create this program, I had to first learn about web scraping and the Beautiful Soup library for Python. I thought Beautiful Soup was the best choice as its best designed for grabbing information from static websites with easily accessible HTML code. I also realised that I would need to create a GUI for this program as that would make it easier for others to quickly understand how to use it. For this, I chose Tkinter as it can create simple yet intuitive GUIs that would work well for what I intended the program to do.
+
+A main obstacle I encountered when making this program was understanding how the HTML code of kijiji.ca web pages are structured and devising the best ways to extract useful information from them. I had to learn how the site organized its listings and their information and once I figured it out, I was able to write code that was able to loop through each listing and compare the search filters with the information presented in them.
+ Another obstacle was getting my Tkinter UI to interact and work well with the searching code I wrote that utilised Beautiful Soup. This invloved getting an in-depth understanding of how Tkinter functions and how the main loop for the UI works, and from there I was able to program the widgets to perform their appropriate function.
