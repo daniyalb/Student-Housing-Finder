@@ -1,16 +1,21 @@
 # Student Housing Finder 🏠
  A python web scrapring program which helps assist students in finding housing accomodations. The program saves students time in searching for housing by looking through listings on kijiji.ca which match their filters (website filters + additional custom made filters) and displaying the results in far less time than it would take for one to search for and read through each listing. The program also provides an automatic search feature which searches for new listings every few minutes, as specified by the user. This allows users to see new listings that match their filters as soon as they are posted, allowing them to be the first to contact the owner and have a higher chance at securing a lease.
  # Screenshots 📸
- Filter Select Scree:
+ Filter Select Screen:
 <img width="865" alt="Screen Shot 2022-09-08 at 12 41 55 AM" src="https://user-images.githubusercontent.com/63890998/189036314-8f2e7903-99e6-4658-a29d-b8104448071a.png">
+
 Main Menu:
 <img width="867" alt="Screen Shot 2022-09-08 at 12 43 26 AM" src="https://user-images.githubusercontent.com/63890998/189036413-0819813f-79fb-4bee-ac81-e8e61ee21244.png">
+
 Search Results:
 <img width="865" alt="Screen Shot 2022-09-08 at 12 44 23 AM" src="https://user-images.githubusercontent.com/63890998/189036463-3e325d68-c6e6-4771-85df-3e67c38194b7.png">
+
 Setting Up Auto Search:
 <img width="863" alt="Screen Shot 2022-09-08 at 12 44 38 AM" src="https://user-images.githubusercontent.com/63890998/189036526-75df75d6-c895-48bc-b012-52ab2b59caec.png">
+
 Auto Search Running:
 <img width="863" alt="Screen Shot 2022-09-08 at 12 44 45 AM" src="https://user-images.githubusercontent.com/63890998/189036577-0679b8c0-2a50-43a4-badc-dae38b189093.png">
+
 # Technologies Used 💻
 - Beautiful Soup 4
 - Tkinter
