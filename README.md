@@ -28,7 +28,7 @@ Auto Search Running:
 1. Ensure that you have Python 3.9+ installed on your computer
 2. Clone this repository onto your computer
 3. Install Beautiful Soup by running this command: `pip install beautifulsoup4`
-4. Install the parser method used in this program: `pip intall lxml`
+4. Install the parser method used in this program: `pip install lxml`
 5. Install the requests library: `pip install requests`
 6. Install the beepy package for notification sounds: `pip install beepy`
 7. Run main_gui.py
