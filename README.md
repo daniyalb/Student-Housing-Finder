@@ -22,6 +22,7 @@ Auto Search Running:
 <img width="863" alt="Screen Shot 2022-09-08 at 12 44 45 AM" src="https://user-images.githubusercontent.com/63890998/189036577-0679b8c0-2a50-43a4-badc-dae38b189093.png">
 
 # Technologies Used 💻
+- Python
 - Beautiful Soup 4
 - Tkinter
 # Installation Instructions
