@@ -31,8 +31,9 @@ Auto Search Running:
 3. Install Beautiful Soup by running this command: `pip install beautifulsoup4`
 4. Install the parser method used in this program: `pip install lxml`
 5. Install the requests library: `pip install requests`
-6. Install the beepy package for notification sounds: `pip install beepy`
-7. Run main_gui.py
+6. Install the Pillow library for displaying images: `pip install Pillow`
+7. Install the beepy package for notification sounds: `pip install beepy`
+8. Run main_gui.py
 # Reflection 🤔
 This was a side project I made to continue to improve my programming skills with Python and to also explore something which has always been interesting to me, web scraping.
 
